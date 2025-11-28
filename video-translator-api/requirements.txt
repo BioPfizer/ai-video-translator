@@ -1,0 +1,21 @@
+# Core API
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# AI/ML
+openai-whisper==20231117
+deep-translator==1.11.4
+edge-tts==6.1.9
+
+# Video Processing
+ffmpeg-python==0.2.0
+moviepy==1.0.3
+
+# Audio Processing
+pydub==0.25.1
+
+# Utilities
+python-dotenv==1.0.0
+pydantic==2.5.0
+aiofiles==23.2.1
