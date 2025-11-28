@@ -1,10 +1,9 @@
-<<<<<<< HEAD
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-=======
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -14,7 +13,6 @@ __pycache__/
 *.so
 
 # Distribution / packaging
->>>>>>> ab210339fe3735d227792ce5eebac6681983a441
 .Python
 build/
 develop-eggs/
@@ -28,7 +26,6 @@ parts/
 sdist/
 var/
 wheels/
-<<<<<<< HEAD
 *.egg-info/
 .installed.cfg
 *.egg
@@ -100,7 +97,6 @@ coverage/
 *.tmp
 *.temp
 .cache/
-=======
 share/python-wheels/
 *.egg-info/
 .installed.cfg
@@ -286,4 +282,3 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
->>>>>>> ab210339fe3735d227792ce5eebac6681983a441
