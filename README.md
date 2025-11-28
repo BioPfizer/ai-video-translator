@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # AI Video Translator
 
 AI-powered video translation system that automatically transcribes, translates, and dubs videos between any language.
@@ -109,7 +108,3 @@ MIT License - see LICENSE file for details
 - Video subtitle generation
 - Voice cloning options
 - Real-time streaming translation
-=======
-# ai-video-translator
-AI-powered video translation system that automatically transcribes, translates, and dubs videos between English, Chinese, and Malay using Whisper, DeepL/Google Translate, and Edge-TTS. Built with FastAPI + Next.js.
->>>>>>> ab210339fe3735d227792ce5eebac6681983a441
