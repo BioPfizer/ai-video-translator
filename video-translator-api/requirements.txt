@@ -10,10 +10,6 @@ edge-tts==6.1.9
 
 # Video Processing
 ffmpeg-python==0.2.0
-moviepy==1.0.3
-
-# Audio Processing
-pydub==0.25.1
 
 # Utilities
 python-dotenv==1.0.0
