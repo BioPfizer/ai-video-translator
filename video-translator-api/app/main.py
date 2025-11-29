@@ -5,6 +5,9 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv()
+
 from app.models.schemas import (
     TranslationRequest, 
     TranslationResponse,
@@ -18,9 +21,6 @@ from app.services.translation_service import TranslationService
 from app.services.tts_service import TTSService
 from app.services.video_service import VideoService
 from app.utils.file_handler import FileHandler
-
-# Load environment variables
-load_dotenv
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -46,10 +46,10 @@ video_service = VideoService()
 file_handler = FileHandler()
 
 def get_stt_service():
-    """Lazy load STT service (Whisper model is large)"""
+    """Lazy load STT service"""
     global stt_service
     if stt_service is None:
-        stt_service = STTService(model_size="base")
+        stt_service = STTService()
     return stt_service
 
 def get_translation_service():
