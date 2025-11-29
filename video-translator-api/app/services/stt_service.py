@@ -5,7 +5,7 @@ from typing import Tuple
 class STTService:
     """Speech-to-Text using OpenAI Whisper"""
     
-    def __init__(self, model_size: str = "tiny"):
+    def __init__(self, model_size: str = "base"):
         """
         Initialize Whisper model
         Models: tiny, base, small, medium, large
