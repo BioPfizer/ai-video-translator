@@ -66,6 +66,15 @@ def get_tts_service():
         tts_service = TTSService()
     return tts_service
 
+################ DEBUG ################
+@app.get("/debug/tmp")
+async def debug_tmp():
+    """Debug endpoint to check /tmp directory"""
+    return {
+        "tmp_contents": os.listdir('/tmp') if os.path.exists('/tmp') else [],
+        "uploads_exists": os.path.exists('/tmp/uploads'),
+        "outputs_exists": os.path.exists('/tmp/outputs'),
+    }
 
 ################ HEALTH CHECK ################
 @app.get("/")
