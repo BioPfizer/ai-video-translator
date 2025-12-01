@@ -69,11 +69,42 @@ def get_tts_service():
 ################ DEBUG ################
 @app.get("/debug/tmp")
 async def debug_tmp():
-    """Debug endpoint to check /tmp directory"""
+    from pathlib import Path
+    
+    def get_dir_info(path: str):
+        """Get detailed info about a directory"""
+        if not os.path.exists(path):
+            return {"exists": False}
+        
+        files = []
+        try:
+            for item in os.listdir(path):
+                item_path = os.path.join(path, item)
+                stat = os.stat(item_path)
+                files.append({
+                    "name": item,
+                    "size": stat.st_size,
+                    "size_mb": round(stat.st_size / 1024 / 1024, 2),
+                    "is_file": os.path.isfile(item_path),
+                    "modified": stat.st_mtime
+                })
+        except Exception as e:
+            return {"exists": True, "error": str(e)}
+        
+        return {
+            "exists": True,
+            "file_count": len(files),
+            "files": files
+        }
+    
     return {
-        "tmp_contents": os.listdir('/tmp') if os.path.exists('/tmp') else [],
-        "uploads_exists": os.path.exists('/tmp/uploads'),
-        "outputs_exists": os.path.exists('/tmp/outputs'),
+        "tmp": get_dir_info("/tmp"),
+        "tmp_uploads": get_dir_info("/tmp/uploads"),
+        "tmp_outputs": get_dir_info("/tmp/outputs"),
+        "disk_usage": {
+            "total": os.statvfs('/tmp').f_blocks * os.statvfs('/tmp').f_frsize,
+            "available": os.statvfs('/tmp').f_bavail * os.statvfs('/tmp').f_frsize,
+        } if hasattr(os, 'statvfs') else "Not available"
     }
 
 ################ HEALTH CHECK ################
