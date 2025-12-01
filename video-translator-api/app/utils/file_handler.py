@@ -8,13 +8,13 @@ from fastapi import UploadFile
 class FileHandler:
     """Handle file uploads and cleanup"""
     
-    def __init__(self, upload_dir: str = "uploads", output_dir: str = "outputs"):
+    def __init__(self, upload_dir: str = "/tmp/uploads", output_dir: str = "/tmp/outputs"):
         self.upload_dir = Path(upload_dir)
         self.output_dir = Path(output_dir)
         
         # Create directories if they don't exist
-        self.upload_dir.mkdir(exist_ok=True)
-        self.output_dir.mkdir(exist_ok=True)
+        self.upload_dir.mkdir(parents=True, exist_ok=True)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
     
     def save_upload(self, file: UploadFile, prefix: str = "video") -> str:
         """
