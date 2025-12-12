@@ -285,15 +285,26 @@ async def translate_video(
         # Step 3: Transcribe (STT)
         print("Step 3: Transcribing audio...")
         stt = get_stt_service()
-        original_text, detected_lang = stt.transcribe(audio_path)
-        print(f"Original text: {original_text}")
+
+        try:
+            original_text, detected_lang = stt.transcribe(audio_path)
+            print(f"Original text: {original_text}")
+        except Exception as e:
+            # Check if it's a "no speech" error
+            error_msg = str(e)
+            if "No speech detected" in error_msg or "empty transcript" in error_msg.lower():
+                raise HTTPException(
+                    status_code=400, 
+                    detail="No speech detected in the video. Please upload a video with spoken dialogue or narration."
+                )
+            raise  # Re-raise other errors
         
         # Step 4: Translate
         print("Step 4: Translating text...")
         translator = get_translation_service()
         translated_text = translator.translate(
             text=original_text,
-            source_lang=source_lang,
+            source_lang=detected_lang,
             target_lang=target_lang
         )
         print(f"Translated text: {translated_text}")
@@ -318,11 +329,19 @@ async def translate_video(
         file_handler.cleanup_files(*temp_files)
         
         # Return translated video
-        return FileResponse(
+        response = FileResponse(
             output_video_path,
             media_type="video/mp4",
             filename=f"translated_{Path(video_path).name}"
         )
+
+        response.headers["X-Detected-Language"] = detected_lang
+        return response
+
+    except HTTPException:
+        # Don't wrap HTTPExceptions, pass them through
+        file_handler.cleanup_files(*temp_files)
+        raise
         
     except Exception as e:
         # Cleanup all temp files on error

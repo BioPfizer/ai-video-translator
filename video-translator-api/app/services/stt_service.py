@@ -31,6 +31,17 @@ class STTService:
         try:
             print(f"Transcribing: {audio_path}")
             
+            # 1. Check file exists and size
+            if not os.path.exists(audio_path):
+                raise Exception(f"Audio file not found: {audio_path}")
+
+            # 2. Check file size (catches corrupted/empty files)
+            file_size = os.path.getsize(audio_path)
+            print(f"Audio file size: {file_size} bytes")
+
+            if file_size < 1000:
+                raise Exception (f"Audio file too small: {file_size} bytes - may be silent")
+                
             # Read audio file
             with open(audio_path, "rb") as audio_file:
                 buffer_data = audio_file.read()
@@ -55,8 +66,17 @@ class STTService:
             
             # Extract text and language
             transcript = response.results.channels[0].alternatives[0].transcript
-            detected_lang = response.results.channels[0].detected_language
+            detected_lang = response.results.channels[0].detected_language or "en"
             
+            # 3. Handle empty transcript
+            if not transcript or transcript.strip() == "":
+                raise Exception("No speech detected in the audio. Please upload a video with spoken content.")
+
+            # 4. Check min word count
+            word_count = len(transcript.strip().split())
+            if word_count < 3:
+                raise Exception(f"Very little speech detected ({word_count} words). Please ensure your video has clear audio.")
+
             # Map Deepgram language codes to our format
             lang_map = {
                 "en": "en",
@@ -70,7 +90,8 @@ class STTService:
             mapped_lang = lang_map.get(detected_lang, "en")
             
             print(f"✓ Transcribed ({detected_lang} → {mapped_lang}): {transcript[:100]}...")
-            
+            print(f"✓ Word count: {word_count}")
+
             return transcript.strip(), mapped_lang
             
         except Exception as e:

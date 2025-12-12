@@ -25,6 +25,7 @@ export default function Home() {
   const [resultVideo, setResultVideo] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [detectedLang, setDetectedLang] = useState<string | null>(null)
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
   const handleSubmit = async () => {
@@ -36,7 +37,8 @@ export default function Home() {
     setIsProcessing(true)
     setStatus('Uploading...')
     setProgress(10)
-    setError(null) // CLEAR previous errors
+    setError(null)
+    setDetectedLang(null)
 
     try {
       const formData = new FormData()
@@ -65,6 +67,12 @@ export default function Home() {
         throw new Error(errorData.detail || 'Translation failed')
       }
 
+      // Extract detected language from headers
+      const detectedLanguage = response.headers.get('X-Detected-Language')
+      if (detectedLanguage) {
+        setDetectedLang(detectedLanguage)
+      }
+
       setProgress(90)
       setStatus('Creating preview...')
 
@@ -77,7 +85,7 @@ export default function Home() {
 
     } catch (error: any) {
       setError(error.message || 'Translation failed') // SET error
-      setStatus(`Error: ${error.message}`)
+      setStatus('')
       setProgress(0)
     } finally {
       setIsProcessing(false)
@@ -193,7 +201,8 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <div>
+                  {/* Source Lang Dropdown */} 
+                  {/* <div>
                     <label className="block text-sm font-semibold text-slate-300 mb-3">
                       From Language
                     </label>
@@ -207,14 +216,22 @@ export default function Home() {
                         <SelectItem value="ms">🇲🇾 Malay</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div> */}
+
+                  {/* Auto-detect info */}
+                  <div className="flex items-center gap-2 text-sm text-slate-400 bg-slate-800/30 rounded-lg p-3 border border-slate-700/50">
+                    <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>Source language will be automatically detected</span>
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-slate-300 mb-3">
-                      To Language
+                      Translate To
                     </label>
                     <Select value={targetLang} onValueChange={setTargetLang}>
-                      <SelectTrigger className="h-12 bg-slate-800/50 border-slate-700 text-slate-200">
+                      <SelectTrigger className="h-12 bg-slate-800/50 border-slate-700 text-slate-200 w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-700">
@@ -330,9 +347,16 @@ export default function Home() {
                           <h3 className="text-xl font-bold text-white">
                              Translated Video
                           </h3>
-                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                            Ready
-                          </Badge>
+                          <div className="flex gap-2"> 
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                              Ready
+                            </Badge>
+                            {detectedLang && (
+                              <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                                From: {detectedLang === 'en' ? '🇬🇧 EN' : detectedLang === 'zh-CN' ? '🇨🇳 ZH' : '🇲🇾 MS'}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         
                         <video

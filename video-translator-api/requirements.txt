@@ -6,7 +6,7 @@ python-multipart==0.0.6
 # AI/ML
 deepgram-sdk==3.3.2
 deep-translator==1.11.4
-edge-tts==7.2.3
+edge-tts==7.2.6
 
 # Video Processing
 ffmpeg-python==0.2.0

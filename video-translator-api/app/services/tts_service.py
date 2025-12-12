@@ -67,8 +67,8 @@ class TTSService:
                 # No running loop, safe to use asyncio.run()
                 return asyncio.run(self.generate_speech_async(text, language, output_path))
             
-            # If we're here, there's a running loop - shouldn't happen in sync context
-            raise Exception("Cannot use sync method in async context. Use generate_speech_async() instead.")
+                # # If we're here, there's a running loop - shouldn't happen in sync context
+                # raise Exception("Cannot use sync method in async context. Use generate_speech_async() instead.")
 
             print(f"Generating speech ({language}): {text[:50]}...")
             
