@@ -36,6 +36,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Detected-Language"]
 )
 
 # Initialize services (lazy loading on first use)
@@ -245,7 +246,7 @@ async def speech_to_text(file: UploadFile = File(...)):
 @app.post("/api/translate-video")
 async def translate_video(
     file: UploadFile = File(...),
-    source_lang: str = Form(...),
+    # source_lang: str = Form(...),
     target_lang: str = Form(...)
 ):
     """
@@ -266,8 +267,8 @@ async def translate_video(
         print("="*60)
         
         # Validate languages
-        if source_lang not in ["en", "zh-CN", "ms"]:
-            raise HTTPException(400, "Invalid source language")
+        # if source_lang not in ["en", "zh-CN", "ms"]:
+        #     raise HTTPException(400, "Invalid source language")
         if target_lang not in ["en", "zh-CN", "ms"]:
             raise HTTPException(400, "Invalid target language")
         

@@ -18,7 +18,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('upload')
   const [file, setFile] = useState<File | null>(null)
   const [url, setUrl] = useState('')
-  const [sourceLang, setSourceLang] = useState('en')
+  // const [sourceLang, setSourceLang] = useState('en')
   const [targetLang, setTargetLang] = useState('zh-CN')
   const [status, setStatus] = useState('')
   const [progress, setProgress] = useState(0)
@@ -51,7 +51,7 @@ export default function Home() {
         return
       }
       
-      formData.append('source_lang', sourceLang)
+      // formData.append('source_lang', sourceLang)
       formData.append('target_lang', targetLang)
 
       setStatus('Translating video...')
@@ -391,7 +391,7 @@ export default function Home() {
               transition={{ delay: 0.6 }}
             >
               <p className="text-slate-500 text-sm">
-                Powered by <span className="text-cyan-400">Whisper</span>, <span className="text-blue-400">Google Translate</span>, and <span className="text-purple-400">Edge-TTS</span>
+                Powered by <span className="text-cyan-400">Deepgram</span>, <span className="text-blue-400">Google Translate</span>, and <span className="text-purple-400">Edge-TTS</span>
               </p>
             </motion.div>
           </motion.div>
