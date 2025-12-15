@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import yt_dlp
 
 # Load environment variables
 load_dotenv()
@@ -136,6 +137,128 @@ async def health():
             "video": "ready"
         }
     }
+
+################ URL Video Download ################
+@app.post("/api/translate-video-from-url")
+async def translate_video_from_url(
+    url: str = Form(...),
+    target_lang: str = Form(...)
+):
+    """
+    Download video from URL then translate
+    
+    Form Data:
+    - url: Video URL (YouTube, TikTok, Instagram)
+    - target_lang: Target language (en, zh-CN, ms)
+    
+    Returns: Translated video file
+    """
+    temp_files = []
+    
+    try:
+        print("\n" + "="*60)
+        print("URL VIDEO TRANSLATION PIPELINE")
+        print("="*60)
+        
+        # Validate target language
+        if target_lang not in ["en", "zh-CN", "ms"]:
+            raise HTTPException(400, "Invalid target language")
+        
+        # Step 1: Download video from URL
+        print("Step 1: Downloading video from URL...")
+        video_path = file_handler.get_output_path("downloaded_video", ".mp4")
+        temp_files.append(video_path)
+        
+        ydl_opts = {
+            'format': 'best[ext=mp4][filesize<100M]',  # Max 100MB
+            'outtmpl': video_path,
+            'quiet': False,
+        }
+        
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+        except Exception as e:
+            raise HTTPException(400, f"Failed to download video: {str(e)}")
+        
+        if not os.path.exists(video_path):
+            raise HTTPException(400, "Video download failed")
+        
+        print(f"✓ Video downloaded: {video_path}")
+        
+        # Step 2: Extract audio
+        print("Step 2: Extracting audio...")
+        audio_path = file_handler.get_output_path("extracted_audio", ".wav")
+        temp_files.append(audio_path)
+        video_service.extract_audio(video_path, audio_path)
+        
+        # Step 3: Transcribe (STT)
+        print("Step 3: Transcribing audio...")
+        stt = get_stt_service()
+        
+        try:
+            original_text, detected_lang, confidence = stt.transcribe(audio_path)
+            print(f"Original text: {original_text}")
+            
+            if confidence < 0.7:
+                print("⚠ Possible mixed language video - translation may be inaccurate")
+        except Exception as e:
+            error_msg = str(e)
+            if "No speech detected" in error_msg or "empty transcript" in error_msg.lower():
+                raise HTTPException(
+                    status_code=400, 
+                    detail="No speech detected in the video. Please upload a video with spoken dialogue or narration."
+                )
+            raise
+        
+        # Step 4: Translate
+        print("Step 4: Translating text...")
+        translator = get_translation_service()
+        translated_text = translator.translate(
+            text=original_text,
+            source_lang=detected_lang,
+            target_lang=target_lang
+        )
+        print(f"Translated text: {translated_text}")
+        
+        # Step 5: Text-to-Speech
+        print("Step 5: Generating speech...")
+        tts = get_tts_service()
+        new_audio_path = file_handler.get_output_path("translated_audio", ".mp3")
+        temp_files.append(new_audio_path)
+        await tts.generate_speech_async(translated_text, target_lang, new_audio_path)
+        
+        # Step 6: Merge audio with video
+        print("Step 6: Creating final video...")
+        output_video_path = file_handler.get_output_path("translated_video", ".mp4")
+        video_service.replace_audio(video_path, new_audio_path, output_video_path)
+        
+        print("="*60)
+        print("✓ TRANSLATION COMPLETE")
+        print("="*60 + "\n")
+        
+        # Cleanup temp files
+        file_handler.cleanup_files(*temp_files)
+        
+        # Return translated video with headers
+        response = FileResponse(
+            output_video_path,
+            media_type="video/mp4",
+            filename=f"translated_video.mp4"
+        )
+        response.headers["X-Detected-Language"] = detected_lang
+        response.headers["X-Language-Confidence"] = str(confidence)
+        return response
+        
+    except HTTPException:
+        file_handler.cleanup_files(*temp_files)
+        raise
+        
+    except Exception as e:
+        file_handler.cleanup_files(*temp_files)
+        print(f"\n✗ Pipeline Error: {e}\n")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 ################ TEXT TRANSLATION ################
