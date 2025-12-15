@@ -36,7 +36,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["X-Detected-Language"]
+    expose_headers=["X-Detected-Language", "X-Language-Confidence"]
 )
 
 # Initialize services (lazy loading on first use)
@@ -288,8 +288,13 @@ async def translate_video(
         stt = get_stt_service()
 
         try:
-            original_text, detected_lang = stt.transcribe(audio_path)
+            original_text, detected_lang, confidence = stt.transcribe(audio_path)
             print(f"Original text: {original_text}")
+
+            # Warn about mixed languages
+            if confidence < 0.7:
+                print("⚠ Possible mixed language video - translation may be inaccurate")
+
         except Exception as e:
             # Check if it's a "no speech" error
             error_msg = str(e)
@@ -337,6 +342,8 @@ async def translate_video(
         )
 
         response.headers["X-Detected-Language"] = detected_lang
+        response.headers["X-Language-Confidence"] = str(confidence)
+
         return response
 
     except HTTPException:

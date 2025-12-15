@@ -18,7 +18,7 @@ class STTService:
         self.client = DeepgramClient(self.api_key)
         print("✓ Deepgram STT service initialized")
 
-    def transcribe(self, audio_path: str) -> Tuple[str, str]:
+    def transcribe(self, audio_path: str) -> Tuple[str, str, float]:
         """
         Transcribe audio file
         
@@ -68,6 +68,15 @@ class STTService:
             transcript = response.results.channels[0].alternatives[0].transcript
             detected_lang = response.results.channels[0].detected_language or "en"
             
+            # Get language confidence
+            confidence = response.results.channels[0].language_confidence or 1.0
+
+            print(f"✓ Language: {detected_lang} (confidence: {confidence:.2f})")
+
+            # Check for low confidence (might indicate mixed languages)
+            if confidence < 0.7:
+                print(f"⚠ Warning: Low language confidence - video might contain mixed languages")
+
             # 3. Handle empty transcript
             if not transcript or transcript.strip() == "":
                 raise Exception("No speech detected in the audio. Please upload a video with spoken content.")
@@ -92,7 +101,7 @@ class STTService:
             print(f"✓ Transcribed ({detected_lang} → {mapped_lang}): {transcript[:100]}...")
             print(f"✓ Word count: {word_count}")
 
-            return transcript.strip(), mapped_lang
+            return transcript.strip(), mapped_lang, confidence
             
         except Exception as e:
             print(f"✗ Deepgram STT Error: {e}")

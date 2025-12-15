@@ -26,6 +26,7 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [detectedLang, setDetectedLang] = useState<string | null>(null)
+  const [lowConfidenceWarning, setLowConfidenceWarning] = useState(false)
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
   const handleSubmit = async () => {
@@ -39,6 +40,7 @@ export default function Home() {
     setProgress(10)
     setError(null)
     setDetectedLang(null)
+    setLowConfidenceWarning(false)
 
     try {
       const formData = new FormData()
@@ -69,8 +71,15 @@ export default function Home() {
 
       // Extract detected language from headers
       const detectedLanguage = response.headers.get('X-Detected-Language')
+      const confidence = parseFloat(response.headers.get('X-Language-Confidence') || '1.0')
+
       if (detectedLanguage) {
         setDetectedLang(detectedLanguage)
+      }
+
+       // Check for low confidence
+      if (confidence < 0.7) {
+        setLowConfidenceWarning(true)
       }
 
       setProgress(90)
@@ -273,7 +282,7 @@ export default function Home() {
                   </Button>
                 </motion.div>
 
-                {/* ERROR ALERT - ADD HERE */}
+                {/* ERROR ALERT */}
                 <AnimatePresence>
                   {error && (
                     <motion.div
@@ -303,6 +312,46 @@ export default function Home() {
                         <button
                           onClick={() => setError(null)}
                           className="absolute top-2 right-2 text-red-400 hover:text-red-300"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </Alert>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                
+                {/* Low Confidence Warning */}
+                <AnimatePresence>
+                  {lowConfidenceWarning && !error && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-6"
+                    >
+                      <Alert className="border-amber-500/50 bg-amber-500/10">
+                        <svg
+                          className="h-4 w-4 text-amber-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                          />
+                        </svg>
+                        <AlertTitle className="text-amber-400 font-semibold">Mixed Language Detected</AlertTitle>
+                        <AlertDescription className="text-amber-300">
+                          This video may contain multiple languages. Translation accuracy might be affected.
+                        </AlertDescription>
+                        <button
+                          onClick={() => setLowConfidenceWarning(false)}
+                          className="absolute top-2 right-2 text-amber-400 hover:text-amber-300"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
