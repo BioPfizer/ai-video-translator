@@ -1,17 +1,20 @@
 from deep_translator import GoogleTranslator, DeeplTranslator
 from typing import Dict
+from app.models.schemas import SUPPORTED_LANGUAGES
 
 # Google Translator
 class TranslationService:
     """Translation service using Google Translate (free)"""
     
-    # Language code mapping
-    LANG_MAP = {
-        "en": "en",
-        "zh-CN": "zh-CN",
-        "ms": "ms",
-        "zh": "zh-CN"  # Alias
-    }
+    def __init__(self):
+        """Initialize translation service"""
+        # Build language map from SUPPORTED_LANGUAGES
+        self.LANG_MAP = {
+            lang_code: lang_code for lang_code in SUPPORTED_LANGUAGES.keys()
+        }
+        # Add common aliases
+        self.LANG_MAP["zh"] = "zh-CN"
+        print("✓ Translation service initialized")
     
     def translate(self, text: str, source_lang: str, target_lang: str) -> str:
         """

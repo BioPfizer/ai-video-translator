@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BackgroundRipple } from '@/components/ui/background-ripple'
 import { FileUpload } from '@/components/ui/file-upload'
 import { SearchBar } from '@/components/ui/search-bar'
@@ -20,6 +20,7 @@ export default function Home() {
   const [url, setUrl] = useState('')
   // const [sourceLang, setSourceLang] = useState('en')
   const [targetLang, setTargetLang] = useState('zh-CN')
+  const [languages, setLanguages] = useState<any[]>([])
   const [status, setStatus] = useState('')
   const [progress, setProgress] = useState(0)
   const [resultVideo, setResultVideo] = useState<string | null>(null)
@@ -100,6 +101,26 @@ export default function Home() {
       setIsProcessing(false)
     }
   }
+
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/languages/video`)
+        const data = await response.json()
+        setLanguages(data.languages)
+      } catch (error) {
+        console.error('Failed to fetch languages:', error)
+        // Fallback to default languages
+        setLanguages([
+          { code: 'en', name: 'English', native_name: 'English', flag: '🇬🇧' },
+          { code: 'zh-CN', name: 'Chinese (Simplified)', native_name: '简体中文', flag: '🇨🇳' },
+          { code: 'ms', name: 'Malay', native_name: 'Bahasa Melayu', flag: '🇲🇾' },
+        ])
+      }
+    }
+    
+    fetchLanguages()
+  }, [])
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -243,10 +264,12 @@ export default function Home() {
                       <SelectTrigger className="h-12 bg-slate-800/50 border-slate-700 text-slate-200 w-full">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700">
-                        <SelectItem value="en">🇬🇧 English</SelectItem>
-                        <SelectItem value="zh-CN">🇨🇳 Chinese</SelectItem>
-                        <SelectItem value="ms">🇲🇾 Malay</SelectItem>
+                      <SelectContent className="bg-slate-800 border-slate-700 max-h-[300px] overflow-y-auto">
+                        {languages.map((lang) => (
+                          <SelectItem key={lang.code} value={lang.code}>
+                            {lang.flag} {lang.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
