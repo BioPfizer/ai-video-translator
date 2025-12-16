@@ -14,7 +14,10 @@ from app.models.schemas import (
     TranslationResponse,
     TTSRequest,
     STTResponse,
-    LanguageCode
+    LanguageCode,
+    SUPPORTED_LANGUAGES,
+    get_stt_supported_languages,
+    is_language_supported
 )
 
 from app.services.stt_service import STTService
@@ -27,7 +30,7 @@ from app.utils.file_handler import FileHandler
 app = FastAPI(
     title = "Elvet Video Translator API",
     description = "Translate reels between any language.",
-    version = "1.0.0"
+    version = "1.0.3"
 )
 
 # CORS middleware (allow frontend connections)
@@ -108,6 +111,7 @@ async def debug_tmp():
             "available": os.statvfs('/tmp').f_bavail * os.statvfs('/tmp').f_frsize,
         } if hasattr(os, 'statvfs') else "Not available"
     }
+
 
 ################ HEALTH CHECK ################
 @app.get("/")
@@ -261,6 +265,40 @@ async def translate_video_from_url(
 
 
 
+################ LANGUAGES ################
+@app.get("/api/languages")
+async def get_supported_languages():
+    """Return all supported languages with metadata"""
+    return {
+        "languages": [
+            {
+                "code": code,
+                "name": data["name"],
+                "native_name": data["native_name"],
+                "flag": data["flag"],
+                "stt_supported": data.get("stt_supported", False)
+            }
+            for code, data in SUPPORTED_LANGUAGES.items()
+        ]
+    }
+
+@app.get("/api/languages/video")
+async def get_video_translation_languages():
+    """Return only languages that support full video translation (STT required)"""
+    stt_langs = get_stt_supported_languages()
+    return {
+        "languages": [
+            {
+                "code": code,
+                "name": data["name"],
+                "native_name": data["native_name"],
+                "flag": data["flag"]
+            }
+            for code, data in stt_langs.items()
+        ]
+    }
+
+
 ################ TEXT TRANSLATION ################
 @app.post("/api/translate", response_model=TranslationResponse)
 async def translate_text(request: TranslationRequest):
@@ -389,11 +427,9 @@ async def translate_video(
         print("VIDEO TRANSLATION PIPELINE")
         print("="*60)
         
-        # Validate languages
-        # if source_lang not in ["en", "zh-CN", "ms"]:
-        #     raise HTTPException(400, "Invalid source language")
-        if target_lang not in ["en", "zh-CN", "ms"]:
-            raise HTTPException(400, "Invalid target language")
+        # Validate languages using registry
+        if not is_language_supported(target_lang):
+            raise HTTPException(400, f"Unsupported target language: {target_lang}")
         
         # Step 1: Save uploaded video
         print("Step 1: Saving video...")

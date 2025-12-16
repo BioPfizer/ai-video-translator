@@ -1,22 +1,30 @@
 from deepgram import DeepgramClient, PrerecordedOptions, FileSource
 import os
 from typing import Tuple
+from app.models.schemas import SUPPORTED_LANGUAGES
 
 class STTService:
     """Speech-to-Text using Deepgram API"""
     
     def __init__(self):
-        """
-        Initialize Deepgram client
-        Requires DEEPGRAM_API_KEY environment variable
-        """
+        """Initialize Deepgram client"""
         self.api_key = os.getenv("DEEPGRAM_API_KEY")
         
         if not self.api_key:
             raise ValueError("DEEPGRAM_API_KEY environment variable not set")
         
         self.client = DeepgramClient(self.api_key)
+        
+        # Build reverse mapping for detected languages
+        self.REVERSE_MAP = {}
+        for code, info in SUPPORTED_LANGUAGES.items():
+            if info.get("stt_supported"):
+                deepgram_code = info.get("deepgram_code")
+                if deepgram_code:
+                    self.REVERSE_MAP[deepgram_code] = code
+        
         print("✓ Deepgram STT service initialized")
+        print(f"✓ Loaded {len(self.REVERSE_MAP)} STT languages")
 
     def transcribe(self, audio_path: str) -> Tuple[str, str, float]:
         """
@@ -87,17 +95,8 @@ class STTService:
                 raise Exception(f"Very little speech detected ({word_count} words). Please ensure your video has clear audio.")
 
             # Map Deepgram language codes to our format
-            lang_map = {
-                "en": "en",
-                "zh": "zh-CN",
-                "zh-CN": "zh-CN",
-                "zh-TW": "zh-CN",
-                "ms": "ms",
-                "id": "ms",  # Indonesian (similar to Malay)
-            }
-            
-            mapped_lang = lang_map.get(detected_lang, "en")
-            
+            mapped_lang = self.REVERSE_MAP.get(detected_lang, "en")
+                        
             print(f"✓ Transcribed ({detected_lang} → {mapped_lang}): {transcript[:100]}...")
             print(f"✓ Word count: {word_count}")
 

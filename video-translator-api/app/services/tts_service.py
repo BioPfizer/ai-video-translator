@@ -1,20 +1,20 @@
 import edge_tts
 import asyncio
 import os
+from app.models.schemas import SUPPORTED_LANGUAGES
 
 class TTSService:
     """Text-to-Speech using Edge-TTS (Microsoft voices)"""
     
-    # Voice mapping for supported languages
-    VOICE_MAP = {
-        "en": "en-US-AriaNeural",      # Female English
-        "zh-CN": "zh-CN-XiaoxiaoNeural",  # Female Chinese
-        "ms": "ms-MY-YasminNeural"      # Female Malay
-    }
-    
     def __init__(self):
-        """Initialize TTS service"""
+        """Initialize TTS service with voice mapping from registry"""
+        # Build voice map from SUPPORTED_LANGUAGES
+        self.VOICE_MAP = {
+            lang_code: lang_data["tts_voice"]
+            for lang_code, lang_data in SUPPORTED_LANGUAGES.items()
+        }
         print("✓ Edge-TTS service initialized")
+        print(f"✓ Loaded {len(self.VOICE_MAP)} language voices")
     
     async def generate_speech_async(self, text: str, language: str, output_path: str) -> str:
         """
@@ -37,6 +37,10 @@ class TTSService:
             await communicate.save(output_path)
             
             if os.path.exists(output_path):
+                file_size = os.path.getsize(output_path)
+                if file_size < 1000:
+                    raise Exception(f"Audio file too small ({file_size} bytes)")
+                
                 print(f"✓ Speech generated: {output_path}")
                 return output_path
             else:
