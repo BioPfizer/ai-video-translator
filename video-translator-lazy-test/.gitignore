@@ -1,0 +1,10 @@
+# Packages
+node_modules/
+package-lock.json
+
+# Test artifacts
+playwright-report/
+test-results/
+e2e/fixtures/
+playwright/.cache/
+

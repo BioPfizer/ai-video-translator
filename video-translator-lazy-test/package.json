@@ -1,0 +1,24 @@
+{
+  "name": "video-translator-lazy-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:local": "playwright test",
+    "test:prod": "cross-env TEST_URL=https://ai-video-translator.vercel.app playwright test",
+    "report": "playwright show-report"
+  },
+  "keywords": [],
+  "author": "BioPfizer",
+  "license": "ISC",
+  "description": "E2E tests for Video Translator",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.2",
+    "cross-env": "^10.1.0",
+    "typescript": "^5.9.3"
+  }
+}
