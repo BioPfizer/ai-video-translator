@@ -105,8 +105,16 @@ export default function Home() {
   useEffect(() => {
     const fetchLanguages = async () => {
       try {
+        console.log('Fetching languages from:', `${API_URL}/api/languages/video`);
+
         const response = await fetch(`${API_URL}/api/languages/video`)
+
+        console.log('Response status:', response.status);
+
         const data = await response.json()
+
+        console.log('Languages data:', data);
+
         setLanguages(data.languages)
       } catch (error) {
         console.error('Failed to fetch languages:', error)
